@@ -1,9 +1,23 @@
 <resources>
-    <string name="app_name">Dailykitessentials</string>
+    <string name="app_name">Essential Kit</string>
+    <string name="nav_header_title">Daily Kit: Essentials</string>
+    <string name="nav_header_subtitle">jay.nguyen@jaydeveloper.com</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="nav_menu_alarm">Alarms</string>
+    <string name="nav_menu_reminder">Reminder</string>
+    <string name="nav_menu_todo">To-dos</string>
+    <string name="nav_menu_notes">Notes</string>
+    <string name="nav_menu_timetable">Timetable</string>
+    <string name="nav_menu_calculator">Calculator</string>
+    <string name="nav_menu_barcode">QR Reader</string>
+    <string name="nav_menu_recorder">Recorder</string>
+    <string name="nav_menu_converter">Converters</string>
+    <string name="nav_menu_password">Passwords</string>
+    <string name="nav_menu_shop">Store</string>
+
+    <string name="action_resetting">Reset DB</string>
+    <string name="nav_header_desc">Navigation header</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
 </resources>
