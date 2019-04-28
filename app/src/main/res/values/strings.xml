@@ -16,8 +16,18 @@
     <string name="nav_menu_password">Passwords</string>
     <string name="nav_menu_shop">Store</string>
 
+    <string name="bottom_nav_menu_normal_alarm">Normal Alarm</string>
+    <string name="bottom_nav_menu_tough_alarm">Tough Alarm</string>
+
     <string name="action_resetting">Reset DB</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string-array name="context_menu">
+        <item>Skip next</item>
+        <item>Some...</item>
+    </string-array>
+
+    <string name="title_activity_alarm_details">AlarmDetailsActivity</string>
 </resources>

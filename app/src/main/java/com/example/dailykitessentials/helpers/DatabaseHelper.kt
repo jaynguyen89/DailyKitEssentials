@@ -1,5 +1,6 @@
 package com.example.dailykitessentials.helpers
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
@@ -29,6 +30,8 @@ class DatabaseHelper(context: Context) :
             execSQL(DatabaseSchema.Alarms.CREATE_TABLE_STATEMENT)
             execSQL(DatabaseSchema.Challenges.CREATE_TABLE_STATEMENT)
         }
+
+        insertSampleData(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -82,39 +85,45 @@ class DatabaseHelper(context: Context) :
         }
     }
 
-    fun getAllAlarms() : ArrayList<Alarm> {
+    @SuppressLint("Recycle", "SimpleDateFormat")
+    fun getAllAlarmsByType(type : String) : ArrayList<Alarm> {
         val allAlarms = arrayListOf<Alarm>()
-        var c : Cursor
+        var c : Cursor?
 
         this.readableDatabase.run {
-            c = rawQuery("SELECT * FROM " + DatabaseSchema.Alarms.TABLE_NAME + ";", null)
+            c = when (type) {
+                "NORMAL_ALARMS" -> rawQuery("SELECT * FROM " + DatabaseSchema.Alarms.TABLE_NAME + " WHERE " + DatabaseSchema.Alarms.ALARM_TYPE + " = 0;", null)
+                else -> rawQuery("SELECT * FROM " + DatabaseSchema.Alarms.TABLE_NAME + " WHERE " + DatabaseSchema.Alarms.ALARM_TYPE + " = 1;", null)
+            }
         }
 
         if (c != null)
-            while (c.moveToNext()) {
+            while (c!!.moveToNext()) {
                 val alarm = Alarm()
 
-                alarm.Id = c.getInt(c.getColumnIndex(DatabaseSchema.Alarms.ID))
-                alarm.AlarmType = c.getInt(c.getColumnIndex(DatabaseSchema.Alarms.ALARM_TYPE))
-                alarm.IsTemporary = c.getInt(c.getColumnIndex(DatabaseSchema.Alarms.IS_TEMPORARY)) == 1
+                alarm.Id = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.ID))
+                alarm.AlarmType = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.ALARM_TYPE))
+                alarm.IsTemporary = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.IS_TEMPORARY)) == 1
 
                 // For 24h format: dd/MM/yyyy HH:mm ---- For 12h format: dd/MM/yyyy hh:mm:ss a
                 val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm")
-                alarm.SetTime = dateFormatter.parse(c.getString(c.getColumnIndex(DatabaseSchema.Alarms.SET_TIME)))
+                alarm.SetTime = dateFormatter.parse(c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.SET_TIME)))
 
-                alarm.RepeatDays = c.getString(c.getColumnIndex(DatabaseSchema.Alarms.REPEAT_DAYS))
-                alarm.SoundName = c.getString(c.getColumnIndex(DatabaseSchema.Alarms.SOUND_NAME))
-                alarm.VolumeLevel = c.getInt(c.getColumnIndex(DatabaseSchema.Alarms.VOLUME_LEVEL))
-                alarm.VibrationPattern = c.getString(c.getColumnIndex(DatabaseSchema.Alarms.VIBRATION_PATTERN))
-                alarm.SnoozeDuration = c.getInt(c.getColumnIndex(DatabaseSchema.Alarms.SNOOZE_DURATION))
-                alarm.AlarmNote = c.getString(c.getColumnIndex(DatabaseSchema.Alarms.ALARM_NOTE))
+                alarm.RepeatDays = c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.REPEAT_DAYS))
+                alarm.SoundName = c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.SOUND_NAME))
+                alarm.VolumeLevel = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.VOLUME_LEVEL))
+                alarm.VibrationPattern = c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.VIBRATION_PATTERN))
+                alarm.SnoozeDuration = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.SNOOZE_DURATION))
+                alarm.AlarmNote = c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.ALARM_NOTE))
+                alarm.IsActive = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.IS_ACTIVE)) == 1
 
-                alarm.Challenge = getChallengeById(c.getInt(c.getColumnIndex(DatabaseSchema.Alarms.CHALLENGE_ID)))
+                if (type == "TOUGH_ALARMS")
+                    alarm.Challenge = getChallengeById(c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.CHALLENGE_ID)))
 
                 allAlarms.add(alarm)
             }
 
-        c.close()
+        c!!.close()
 
         return allAlarms
     }
@@ -134,13 +143,13 @@ class DatabaseHelper(context: Context) :
         )
 
         if (c.moveToFirst()) {
-            Challenge.ChallengeType = c.getInt(c.getColumnIndex(DatabaseSchema.Challenges.CHALLENGE_TYPE))
-            Challenge.ChallengeToughness = c.getInt(c.getColumnIndex(DatabaseSchema.Challenges.CHALLENGE_TOUGHNESS))
-            Challenge.KeyCodes = c.getString(c.getColumnIndex(DatabaseSchema.Challenges.KEY_CODE))
-            Challenge.PuzzleNumber = c.getInt(c.getColumnIndex(DatabaseSchema.Challenges.PUZZLE_NUMBER))
-            Challenge.ShakeNumber = c.getInt(c.getColumnIndex(DatabaseSchema.Challenges.SHAKE_NUMBER))
-            Challenge.ShoutNumber = c.getInt(c.getColumnIndex(DatabaseSchema.Challenges.SHOUT_NUMBER))
-            Challenge.BarcodeName = c.getString(c.getColumnIndex(DatabaseSchema.Challenges.BARCODE_NAME))
+            Challenge.ChallengeType = c.getInt(c.getColumnIndexOrThrow(DatabaseSchema.Challenges.CHALLENGE_TYPE))
+            Challenge.ChallengeToughness = c.getInt(c.getColumnIndexOrThrow(DatabaseSchema.Challenges.CHALLENGE_TOUGHNESS))
+            Challenge.KeyCodes = c.getString(c.getColumnIndexOrThrow(DatabaseSchema.Challenges.KEY_CODE))
+            Challenge.PuzzleNumber = c.getInt(c.getColumnIndexOrThrow(DatabaseSchema.Challenges.PUZZLE_NUMBER))
+            Challenge.ShakeNumber = c.getInt(c.getColumnIndexOrThrow(DatabaseSchema.Challenges.SHAKE_NUMBER))
+            Challenge.ShoutNumber = c.getInt(c.getColumnIndexOrThrow(DatabaseSchema.Challenges.SHOUT_NUMBER))
+            Challenge.BarcodeName = c.getString(c.getColumnIndexOrThrow(DatabaseSchema.Challenges.BARCODE_NAME))
 
             c.close()
         }
@@ -207,5 +216,98 @@ class DatabaseHelper(context: Context) :
             DatabaseSchema.Challenges.TABLE_NAME,
             DatabaseSchema.Challenges.ID + " = ?", arrayOf(challenge.Id.toString())
         ) > 0
+    }
+
+    private fun insertSampleData(db : SQLiteDatabase) {
+        var sampleAlarm = contentValuesOf()
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 0)
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 0)
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "20/04/2019 20:30")
+        sampleAlarm.put(DatabaseSchema.Alarms.REPEAT_DAYS, "Mon, Tue, Thu, Sat")
+        sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
+        sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
+        sampleAlarm.put(DatabaseSchema.Alarms.VIBRATION_PATTERN, "1")
+        sampleAlarm.put(DatabaseSchema.Alarms.SNOOZE_DURATION, 10)
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_NOTE, "My sample normal scheduled alarm")
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_ACTIVE, 0)
+
+        db.insert(
+            DatabaseSchema.Alarms.TABLE_NAME,
+            null,
+            sampleAlarm
+        )
+
+        sampleAlarm = contentValuesOf()
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 0)
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 1)
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "18/04/2019 11:15")
+        sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
+        sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
+        sampleAlarm.put(DatabaseSchema.Alarms.VIBRATION_PATTERN, "2")
+        sampleAlarm.put(DatabaseSchema.Alarms.SNOOZE_DURATION, 15)
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_NOTE, "My sample normal temporary alarm")
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_ACTIVE, 1)
+
+        db.insert(
+            DatabaseSchema.Alarms.TABLE_NAME,
+            null,
+            sampleAlarm
+        )
+
+        var sampleChallenge = contentValuesOf()
+        sampleChallenge.put(DatabaseSchema.Challenges.CHALLENGE_TYPE, 0)
+        sampleChallenge.put(DatabaseSchema.Challenges.CHALLENGE_TOUGHNESS, 2)
+        sampleChallenge.put(DatabaseSchema.Challenges.PUZZLE_NUMBER, 5)
+
+        var c_id: Long
+        db.run {
+            c_id = insert(DatabaseSchema.Challenges.TABLE_NAME, null, sampleChallenge)
+        }
+
+        sampleAlarm = contentValuesOf()
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 1)
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 0)
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "19/04/2019 16:45")
+        sampleAlarm.put(DatabaseSchema.Alarms.REPEAT_DAYS, "Mon, Wed, Thu, Sun")
+        sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
+        sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
+        sampleAlarm.put(DatabaseSchema.Alarms.VIBRATION_PATTERN, "3")
+        sampleAlarm.put(DatabaseSchema.Alarms.SNOOZE_DURATION, 5)
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_NOTE, "My sample tough scheduled alarm")
+        sampleAlarm.put(DatabaseSchema.Alarms.CHALLENGE_ID, c_id)
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_ACTIVE, 0)
+
+        db.insert(
+            DatabaseSchema.Alarms.TABLE_NAME,
+            null,
+            sampleAlarm
+        )
+
+        sampleChallenge = contentValuesOf()
+        sampleChallenge.put(DatabaseSchema.Challenges.CHALLENGE_TYPE, 4)
+        sampleChallenge.put(DatabaseSchema.Challenges.CHALLENGE_TOUGHNESS, 1)
+        sampleChallenge.put(DatabaseSchema.Challenges.KEY_CODE, 2)
+
+        db.run {
+            c_id = insert(DatabaseSchema.Challenges.TABLE_NAME, null, sampleChallenge)
+        }
+
+        sampleAlarm = contentValuesOf()
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 1)
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 1)
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "21/04/2019 06:00")
+        sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
+        sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
+        sampleAlarm.put(DatabaseSchema.Alarms.VIBRATION_PATTERN, "3")
+        sampleAlarm.put(DatabaseSchema.Alarms.SNOOZE_DURATION, 5)
+        sampleAlarm.put(DatabaseSchema.Alarms.ALARM_NOTE, "My sample tough temporary alarm")
+        sampleAlarm.put(DatabaseSchema.Alarms.CHALLENGE_ID, c_id)
+        sampleAlarm.put(DatabaseSchema.Alarms.IS_ACTIVE, 1)
+
+        db.insert(
+            DatabaseSchema.Alarms.TABLE_NAME,
+            null,
+            sampleAlarm
+        )
     }
 }

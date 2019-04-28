@@ -10,7 +10,7 @@
         tools:context=".controllers.MainActivity">
 
     <FrameLayout
-            android:id="@+id/main_frame"
+            android:id="@+id/sub_frame"
             android:name="android.app.MainFrame"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

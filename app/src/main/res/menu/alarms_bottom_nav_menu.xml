@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+            android:id="@+id/alarms_bottom_nav_normal"
+            android:icon="@drawable/ic_menu_snooze"
+            android:title="@string/bottom_nav_menu_normal_alarm"/>
+
+    <item
+            android:id="@+id/alarms_bottom_nav_normal_tough"
+            android:icon="@drawable/ic_menu_alarm"
+            android:title="@string/bottom_nav_menu_tough_alarm"/>
+
+</menu>

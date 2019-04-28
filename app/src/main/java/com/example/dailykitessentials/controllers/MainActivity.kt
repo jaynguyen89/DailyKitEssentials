@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.fragment.app.FragmentManager
 import com.example.dailykitessentials.R
 import com.example.dailykitessentials.helpers.DatabaseHelper
 import kotlinx.android.synthetic.main.activity_main.*
@@ -16,6 +17,7 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var _dbHelper : DatabaseHelper? = null
+    private val _fragmentManager : FragmentManager = supportFragmentManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +44,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         nav_view.setNavigationItemSelectedListener(this)
 
         //Default activity when app opens
-
+        val alarmHomeFragment = AlarmHomeFragment.newInstance()
+        _fragmentManager.beginTransaction()
+            .add(R.id.main_frame, alarmHomeFragment, "alarm_home_fragment")
+            .addToBackStack("alarm_home_fragment")
+            .commit()
     }
 
     override fun onBackPressed() {

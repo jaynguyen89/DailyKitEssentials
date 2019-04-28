@@ -22,6 +22,7 @@ class DatabaseSchema {
             const val VIBRATION_PATTERN = "VibrationPattern"
             const val SNOOZE_DURATION = "SnoozeDuration"
             const val ALARM_NOTE = "AlarmNote"
+            const val IS_ACTIVE = "IsActive"
 
             // Foreign key to Challenges table, default NULL for normal alarm
             const val CHALLENGE_ID = "ChallengeId"
@@ -34,12 +35,13 @@ class DatabaseSchema {
                         ALARM_TYPE + " INTEGER DEFAULT 0," +
                         IS_TEMPORARY + " INTEGER DEFAULT 0," +
                         SET_TIME + " TEXT NOT NULL," +
-                        REPEAT_DAYS + " TEXT DEFAULT NULL," +
+                        REPEAT_DAYS + " TEXT DEFAULT \"\"," +
                         SOUND_NAME + " TEXT NOT NULL," +
                         VOLUME_LEVEL + " INTEGER DEFAULT 10," +
-                        VIBRATION_PATTERN + " TEXT DEFAULT NULL," +
+                        VIBRATION_PATTERN + " TEXT DEFAULT \"\"," +
                         SNOOZE_DURATION + " INTEGER DEFAULT 5," +
-                        ALARM_NOTE + " TEXT DEFAULT NULL," +
+                        ALARM_NOTE + " TEXT DEFAULT \"\"," +
+                        IS_ACTIVE + " INTEGER DEFAULT 0," +
                         "FOREIGN KEY (" + CHALLENGE_ID + ") REFERENCES " + Challenges.TABLE_NAME + "(" + Challenges.ID + ") ON DELETE CASCADE" +
                     ");"
         }
@@ -71,11 +73,11 @@ class DatabaseSchema {
                         ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
                         CHALLENGE_TYPE + " INTEGER DEFAULT 0," +
                         CHALLENGE_TOUGHNESS + " INTEGER DEFAULT 0," +
-                        KEY_CODE + " TEXT DEFAULT NULL," +
+                        KEY_CODE + " TEXT DEFAULT \"\"," +
                         PUZZLE_NUMBER + " INTEGER DEFAULT NULL," +
                         SHAKE_NUMBER + " INTEGER DEFAULT NULL," +
                         SHOUT_NUMBER + " INTEGER DEFAULT NULL," +
-                        BARCODE_NAME + " TEXT DEFAULT NULL" +
+                        BARCODE_NAME + " TEXT DEFAULT \"\"" +
                     ");"
         }
     }
