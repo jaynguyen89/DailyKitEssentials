@@ -12,4 +12,6 @@ class Challenge {
     var ShakeNumber : Int = 10
     var ShoutNumber : Int = 3
     var BarcodeName : String = String.EMPTY
+
+    var IsEditted : Boolean = false
 }

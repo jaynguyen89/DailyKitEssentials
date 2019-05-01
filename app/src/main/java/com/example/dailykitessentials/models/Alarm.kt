@@ -1,14 +1,11 @@
 package com.example.dailykitessentials.models
 
+import com.example.dailykitessentials.helpers.*
 import java.util.*
-import com.example.dailykitessentials.helpers.EMPTY
-import com.example.dailykitessentials.helpers.MONOSPACE
-import com.example.dailykitessentials.helpers.MONTH_SET
-import java.time.DayOfWeek
 
 
 class Alarm {
-
+    // Properties set from database
     var Id : Int = 0
     var AlarmType : Int = 0
     var IsTemporary : Boolean = false
@@ -21,24 +18,49 @@ class Alarm {
     var AlarmNote : String = String.EMPTY
     var IsActive : Boolean = false
 
+    // Properties set by computation
+    var ActiveTime : Date? = null
+    var ElapsedTime : Long = 0
+
     var Challenge : Challenge? = null
-
-    fun getDate() : String {
-        val sDateParts = SetTime.toString().split(String.MONOSPACE)
-        val sMonth = if(MONTH_SET[sDateParts[1]]!! < 10) "0" + MONTH_SET[sDateParts[1]] else MONTH_SET[sDateParts[1]].toString()
-
-        return sDateParts[2] + "-" + sMonth + "-" + sDateParts[5]
-    }
-
-    fun getTime() : String {
-        val sDateParts = SetTime.toString().split(String.MONOSPACE)
-        val sTimeParts = sDateParts[3].split(":")
-
-        return (if (sTimeParts[0].length == 1) "0" + sTimeParts[0] else sTimeParts[0]) + ":" + sTimeParts[1]
-    }
 
     fun getDayOfWeek() : String {
         val sDateParts = SetTime.toString().split(String.MONOSPACE)
         return sDateParts[0]
+    }
+
+    fun computeElapsedTime() {
+        ElapsedTime = (ActiveTime!!.time - Date().time) / 1000 // In seconds
+    }
+
+    fun getElapsedTime() : String {
+        val ut = Utilities()
+        val comps = ut.convertTimeDifferenceToTimeComponents(ElapsedTime)
+
+        return (if (comps[0] == 0) "" else (comps[0].toString() + "h ")) +
+                (if (comps[1] == 0) "left" else (comps[1].toString() + "m left"))
+    }
+
+    fun computeActiveTime(current : Date) {
+        val ut = Utilities()
+
+        var dateParts = current.toString().split(String.MONOSPACE)
+        val timeParts = ut.getTime(SetTime)
+
+        var sActiveTime = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + timeParts + ":00 " + dateParts[4] + " " + dateParts[5]
+        var activeTime = DATE_FORMATTER.parse(sActiveTime)
+
+        if (activeTime.before(Date())) {
+            val calendar = Calendar.getInstance()
+            calendar.time = current
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+
+            dateParts = calendar.time.toString().split(String.MONOSPACE)
+
+            sActiveTime = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + timeParts + ":00 " + dateParts[4] + " " + dateParts[5]
+            activeTime = DATE_FORMATTER.parse(sActiveTime)
+        }
+
+        ActiveTime = activeTime
     }
 }

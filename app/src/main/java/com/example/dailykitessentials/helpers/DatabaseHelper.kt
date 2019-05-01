@@ -8,7 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper
 import androidx.core.content.contentValuesOf
 import com.example.dailykitessentials.models.Alarm
 import com.example.dailykitessentials.models.Challenge
-import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 class DatabaseHelper(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -105,9 +106,7 @@ class DatabaseHelper(context: Context) :
                 alarm.AlarmType = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.ALARM_TYPE))
                 alarm.IsTemporary = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.IS_TEMPORARY)) == 1
 
-                // For 24h format: dd/MM/yyyy HH:mm ---- For 12h format: dd/MM/yyyy hh:mm:ss a
-                val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm")
-                alarm.SetTime = dateFormatter.parse(c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.SET_TIME)))
+                alarm.SetTime = DATE_FORMATTER.parse(c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.SET_TIME)))
 
                 alarm.RepeatDays = c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.REPEAT_DAYS))
                 alarm.SoundName = c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.SOUND_NAME))
@@ -116,6 +115,9 @@ class DatabaseHelper(context: Context) :
                 alarm.SnoozeDuration = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.SNOOZE_DURATION))
                 alarm.AlarmNote = c!!.getString(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.ALARM_NOTE))
                 alarm.IsActive = c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.IS_ACTIVE)) == 1
+
+                alarm.computeActiveTime(Date())
+                alarm.computeElapsedTime()
 
                 if (type == "TOUGH_ALARMS")
                     alarm.Challenge = getChallengeById(c!!.getInt(c!!.getColumnIndexOrThrow(DatabaseSchema.Alarms.CHALLENGE_ID)))
@@ -160,8 +162,9 @@ class DatabaseHelper(context: Context) :
     fun editAlarm(alarm : Alarm) : Boolean {
         val editedAlarm = contentValuesOf()
 
-        if (!alarm.Challenge?.let { editChallenge(it) }!!)
-            return false
+        if (alarm.Challenge != null && alarm.Challenge!!.IsEditted)
+            if (!alarm.Challenge?.let { editChallenge(it) }!!)
+                return false
 
         editedAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, alarm.AlarmType)
         editedAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, if (alarm.IsTemporary) 1 else 0)
@@ -172,6 +175,7 @@ class DatabaseHelper(context: Context) :
         editedAlarm.put(DatabaseSchema.Alarms.VIBRATION_PATTERN, alarm.VibrationPattern)
         editedAlarm.put(DatabaseSchema.Alarms.SNOOZE_DURATION, alarm.SnoozeDuration)
         editedAlarm.put(DatabaseSchema.Alarms.ALARM_NOTE, alarm.AlarmNote)
+        editedAlarm.put(DatabaseSchema.Alarms.IS_ACTIVE, alarm.IsActive)
 
         return this.writableDatabase.update(
             DatabaseSchema.Alarms.TABLE_NAME,
@@ -222,7 +226,7 @@ class DatabaseHelper(context: Context) :
         var sampleAlarm = contentValuesOf()
         sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 0)
         sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 0)
-        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "20/04/2019 20:30")
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "Sat Apr 20 20:30:00 GMT+10:00 2019")
         sampleAlarm.put(DatabaseSchema.Alarms.REPEAT_DAYS, "Mon, Tue, Thu, Sat")
         sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
         sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
@@ -240,7 +244,7 @@ class DatabaseHelper(context: Context) :
         sampleAlarm = contentValuesOf()
         sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 0)
         sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 1)
-        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "18/04/2019 11:15")
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "Thu Apr 18 11:15:00 GMT+10:00 2019")
         sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
         sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
         sampleAlarm.put(DatabaseSchema.Alarms.VIBRATION_PATTERN, "2")
@@ -267,7 +271,7 @@ class DatabaseHelper(context: Context) :
         sampleAlarm = contentValuesOf()
         sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 1)
         sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 0)
-        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "19/04/2019 16:45")
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "Fri Apr 19 16:45:00 GMT+10:00 2019")
         sampleAlarm.put(DatabaseSchema.Alarms.REPEAT_DAYS, "Mon, Wed, Thu, Sun")
         sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
         sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
@@ -295,7 +299,7 @@ class DatabaseHelper(context: Context) :
         sampleAlarm = contentValuesOf()
         sampleAlarm.put(DatabaseSchema.Alarms.ALARM_TYPE, 1)
         sampleAlarm.put(DatabaseSchema.Alarms.IS_TEMPORARY, 1)
-        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "21/04/2019 06:00")
+        sampleAlarm.put(DatabaseSchema.Alarms.SET_TIME, "Sun Apr 21 06:00:00 GMT+10:00 2019")
         sampleAlarm.put(DatabaseSchema.Alarms.SOUND_NAME, "Hello World!")
         sampleAlarm.put(DatabaseSchema.Alarms.VOLUME_LEVEL, 10)
         sampleAlarm.put(DatabaseSchema.Alarms.VIBRATION_PATTERN, "3")

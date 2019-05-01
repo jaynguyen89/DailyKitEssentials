@@ -7,16 +7,15 @@ import com.example.dailykitessentials.helpers.DatabaseHelper
 import com.example.dailykitessentials.helpers.EMPTY
 import com.example.dailykitessentials.models.Alarm
 import kotlin.collections.ArrayList
-import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
-import android.content.res.Resources
 import android.graphics.Color
 import android.widget.*
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import com.example.dailykitessentials.controllers.AlarmDetailsActivity
+import com.example.dailykitessentials.controllers.MainActivity
+import com.example.dailykitessentials.helpers.Utilities
+import java.util.*
 
 
 class AlarmAdapter : RecyclerView.Adapter<AlarmAdapter.AlarmRow>() {
@@ -70,9 +69,11 @@ class AlarmAdapter : RecyclerView.Adapter<AlarmAdapter.AlarmRow>() {
 
     @Suppress("DEPRECATION")
     override fun onBindViewHolder(holder: AlarmRow, position: Int) {
+        val ut = Utilities()
+        //val orderedAlarm = ut.reorderAlarms(alarms)
         val alarm = alarms[position]
 
-        holder.setTimeText!!.text = alarm.getTime()
+        holder.setTimeText!!.text = ut.getTime(alarm.SetTime)
 
         holder.quickAlarmIcon!!.isVisible = alarm.IsTemporary
         holder.quickAlarmText!!.isVisible = alarm.IsTemporary
@@ -83,16 +84,14 @@ class AlarmAdapter : RecyclerView.Adapter<AlarmAdapter.AlarmRow>() {
             holder.quickAlarmText!!.text = if (alarm.IsTemporary) "Quick Alarm" else ""
         }
 
-        holder.repeatDaysText!!.text = if (alarm.RepeatDays.isEmpty()) alarm.getDate() else alarm.RepeatDays
-        holder.remainTimeText!!.isVisible = alarm.IsActive
+        holder.repeatDaysText!!.text = if (alarm.RepeatDays.isEmpty()) ut.getDate(alarm.SetTime) else alarm.RepeatDays
+        holder.remainTimeText!!.text = alarm.getElapsedTime()
 
         if (alarm.IsActive) {
             if (alarm.IsTemporary) {
                 holder.quickAlarmIcon!!.setColorFilter(Color.parseColor("#17a2b8"))
                 holder.quickAlarmText!!.setTextColor(Color.parseColor("#17a2b8"))
             }
-
-            holder.remainTimeText!!.text = "10h 30m left"
 
             holder.setTimeText!!.setTextColor(Color.parseColor("#18121E"))
             holder.repeatDaysText!!.setTextColor(Color.parseColor("#18121E"))
@@ -109,12 +108,15 @@ class AlarmAdapter : RecyclerView.Adapter<AlarmAdapter.AlarmRow>() {
 
             holder.setTimeText!!.setTextColor(Color.parseColor("#546E7A"))
             holder.repeatDaysText!!.setTextColor(Color.parseColor("#546E7A"))
+            holder.remainTimeText!!.setTextColor(Color.parseColor("#546E7A"))
 
             if (listType == "TOUGH_ALARMS")
                 holder.challengeIcon!!.setColorFilter(Color.parseColor("#546E7A"))
         }
 
-        holder.alarmSwitch!!.setOnCheckedChangeListener { buttonView, isChecked ->
+        holder.alarmSwitch!!.isChecked = alarm.IsActive
+
+        holder.alarmSwitch!!.setOnCheckedChangeListener { _, isChecked ->
             toggleAlarmStatus(alarms, position, isChecked)
         }
 
@@ -138,14 +140,13 @@ class AlarmAdapter : RecyclerView.Adapter<AlarmAdapter.AlarmRow>() {
     fun setListType(listType : String) { this.listType = listType }
 
     private fun toggleAlarmStatus(alarms : ArrayList<Alarm>, p : Int, isChecked : Boolean) {
-        alarms[p].IsActive = isChecked
+        val alarm = alarms[p]
 
-        if (isChecked) {
+        alarm.IsActive = isChecked
+        alarm.computeActiveTime(Date())
 
-        }
-        else {
-
-        }
+        if (_dbHelper!!.editAlarm(alarm))
+            notifyDataSetChanged()
     }
 
     fun setItemPosition(pos : Int) { itemPosition = pos }

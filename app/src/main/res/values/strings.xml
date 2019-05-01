@@ -25,8 +25,9 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string-array name="context_menu">
-        <item>Skip next</item>
-        <item>Some...</item>
+        <item>Skip next alarm</item>
+        <item>Undo skip next</item>
+        <item>Delete alarm</item>
     </string-array>
 
     <string name="title_activity_alarm_details">AlarmDetailsActivity</string>
